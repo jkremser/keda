@@ -32,7 +32,7 @@ const (
 
 func PrintWelcome(logger logr.Logger, kubeVersion K8sVersion, component string) {
 	logger.Info(fmt.Sprintf("Starting %s", component))
-	logger.Info(fmt.Sprintf("KEDA Version: %s", version.Version))
+	logger.Info(fmt.Sprintf("Kedify build of KEDA Version: %s", version.Version))
 	logger.Info(fmt.Sprintf("Git Commit: %s", version.GitCommit))
 	logger.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	logger.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
