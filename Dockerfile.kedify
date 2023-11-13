@@ -1,0 +1,7 @@
+FROM cgr.dev/chainguard/static:latest
+
+COPY keda-operator /keda
+
+USER 65532:65532
+
+ENTRYPOINT ["/keda", "--zap-log-level=info", "--zap-encoder=console"]

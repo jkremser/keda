@@ -1,0 +1,7 @@
+FROM cgr.dev/chainguard/static:latest
+
+COPY keda-admission-webhooks /keda-admission-webhooks
+
+USER 65532:65532
+
+ENTRYPOINT ["/keda-admission-webhooks", "--zap-log-level=info", "--zap-encoder=console"]

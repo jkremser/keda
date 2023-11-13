@@ -1,0 +1,85 @@
+project_name: kedify-keda
+env:
+- IMAGE_TAG={{ if index .Env "IMAGE_TAG" }}{{ .Env.IMAGE_TAG }}{{ else }}{{ .Tag }}{{ end }}
+
+builds:
+- id: keda-operator
+  binary: keda-operator
+  main: cmd/operator/main.go
+  env:
+  - CGO_ENABLED=0
+  goos:
+    - linux
+  goarch:
+    - amd64
+  flags:
+  - -mod=vendor
+  ldflags: &ldflags
+  - -X github.com/kedacore/keda/v2/version.GitCommit={{ .Commit }}
+  - -X github.com/kedacore/keda/v2/version.Version={{ .Env.IMAGE_TAG }}
+- id: keda-admission-webhooks
+  binary: keda-admission-webhooks
+  main: cmd/webhooks/main.go
+  env:
+  - CGO_ENABLED=0
+  goos:
+    - linux
+  goarch:
+    - amd64
+  flags:
+  - -mod=vendor
+  ldflags: *ldflags
+- id: keda-adapter
+  binary: keda-adapter
+  main: cmd/adapter/main.go
+  env:
+  - CGO_ENABLED=0
+  goos:
+    - linux
+  goarch:
+    - amd64
+  flags:
+  - -mod=vendor
+  ldflags: *ldflags
+
+release:
+  draft: true
+  prerelease: auto
+changelog:
+  skip: true
+
+dockers:
+- id: kedify-keda-amd64
+  image_templates:
+  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}"
+  use: buildx
+  dockerfile: "Dockerfile.kedify"
+  build_flag_templates: &buildFlags
+  - "--platform=linux/amd64"
+  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.title={{.ProjectName}}"
+  - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  - "--label=org.opencontainers.image.version={{.Version}}"
+  - "--label=org.opencontainers.image.description=KEDA Operator by Kedify"
+- id: keda-webhooks-amd64
+  image_templates:
+  - "ghcr.io/kedify/keda-admission-webhooks:{{ .Env.IMAGE_TAG }}"
+  use: buildx
+  dockerfile: "Dockerfile.webhooks.kedify"
+  build_flag_templates: *buildFlags
+- id: keda-adapter-amd64
+  image_templates:
+  - "ghcr.io/kedify/keda-adapter:{{ .Env.IMAGE_TAG }}"
+  use: buildx
+  dockerfile: "Dockerfile.adapter.kedify"
+  build_flag_templates: *buildFlags
+
+docker_signs:
+- id: kedify
+  cmd: cosign
+  args:
+  - "sign"
+  - "${artifact}@${digest}"
+  - "--yes"
+  artifacts: images
+  output: true
