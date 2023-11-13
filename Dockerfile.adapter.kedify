@@ -1,0 +1,7 @@
+FROM cgr.dev/chainguard/static:latest
+
+COPY keda-adapter /keda-adapter
+
+USER 65532:65532
+
+ENTRYPOINT ["/keda-adapter", "--secure-port=6443", "--logtostderr=true", "--v=0"]
