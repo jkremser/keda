@@ -1,6 +1,8 @@
-FROM cgr.dev/chainguard/static:latest
+ARG BASE_IMAGE=cgr.dev/chainguard/static:latest
+FROM $BASE_IMAGE 
 
-COPY keda-adapter /keda-adapter
+ARG BIN_SUFFIX
+COPY keda-adapter${BIN_SUFFIX} /keda-adapter
 
 USER 65532:65532
 

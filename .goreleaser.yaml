@@ -3,44 +3,57 @@ env:
 - IMAGE_TAG={{ if index .Env "IMAGE_TAG" }}{{ .Env.IMAGE_TAG }}{{ else }}{{ .Tag }}{{ end }}
 
 builds:
-- id: keda-operator
-  binary: keda-operator
-  main: cmd/operator/main.go
+- &BASE_BUILD
+  skip: true
+  id: base
   env:
   - CGO_ENABLED=0
   goos:
-    - linux
+  - linux
   goarch:
-    - amd64
+  - amd64
   flags:
   - -mod=vendor
   ldflags: &ldflags
   - -X github.com/kedacore/keda/v2/version.GitCommit={{ .Commit }}
   - -X github.com/kedacore/keda/v2/version.Version={{ .Env.IMAGE_TAG }}
-- id: keda-admission-webhooks
+- &HARDENED_BUILD
+  <<: *BASE_BUILD
+  id: hardened
+  env:
+  - CGO_ENABLED=1
+  - GOEXPERIMENT=boringcrypto
+  - BUILD_EXTRA_GO_LDFLAGS="-linkmode=external -extldflags=-static"
+- <<: *BASE_BUILD
+  skip: false
+  id: keda-operator
+  binary: keda-operator
+  main: cmd/operator/main.go
+- <<: *BASE_BUILD
+  skip: false
+  id: keda-admission-webhooks
   binary: keda-admission-webhooks
   main: cmd/webhooks/main.go
-  env:
-  - CGO_ENABLED=0
-  goos:
-    - linux
-  goarch:
-    - amd64
-  flags:
-  - -mod=vendor
-  ldflags: *ldflags
-- id: keda-adapter
+- <<: *BASE_BUILD
+  skip: false
+  id: keda-adapter
   binary: keda-adapter
   main: cmd/adapter/main.go
-  env:
-  - CGO_ENABLED=0
-  goos:
-    - linux
-  goarch:
-    - amd64
-  flags:
-  - -mod=vendor
-  ldflags: *ldflags
+- <<: *HARDENED_BUILD
+  skip: false
+  id: keda-operator-hardened
+  binary: keda-operator-hardened
+  main: cmd/operator/main.go
+- <<: *HARDENED_BUILD
+  skip: false
+  id: keda-admission-webhooks-hardened
+  binary: keda-admission-webhooks-hardened
+  main: cmd/webhooks/main.go
+- <<: *HARDENED_BUILD
+  skip: false
+  id: keda-adapter-hardened
+  binary: keda-adapter-hardened
+  main: cmd/adapter/main.go
 
 release:
   draft: true
@@ -49,30 +62,69 @@ changelog:
   skip: true
 
 dockers:
-- id: kedify-keda-amd64
-  image_templates:
-  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}"
+- &BASE_IMG
+  skip_push: true
+  id: base
   use: buildx
-  dockerfile: "Dockerfile.kedify"
-  build_flag_templates: &buildFlags
+  build_flag_templates:
   - "--platform=linux/amd64"
   - "--label=org.opencontainers.image.created={{.Date}}"
   - "--label=org.opencontainers.image.title={{.ProjectName}}"
   - "--label=org.opencontainers.image.revision={{.FullCommit}}"
   - "--label=org.opencontainers.image.version={{.Version}}"
   - "--label=org.opencontainers.image.description=KEDA Operator by Kedify"
-- id: keda-webhooks-amd64
+- &HARDENED_IMG
+  <<: *BASE_IMG
+  id: hardened
+  build_flag_templates:
+  - "--build-arg=BASE_IMAGE=cgr.dev/chainguard/glibc-dynamic:latest"
+  - "--build-arg=BIN_SUFFIX=-hardened"
+  - "--platform=linux/amd64"
+  - "--label=org.opencontainers.image.created={{.Date}}"
+  - "--label=org.opencontainers.image.title={{.ProjectName}}"
+  - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  - "--label=org.opencontainers.image.version={{.Version}}"
+  - "--label=org.opencontainers.image.description=KEDA Operator by Kedify"
+- <<: *BASE_IMG
+  id: kedify-keda-amd64
+  image_templates:
+  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}"
+  dockerfile: "Dockerfile.kedify"
+  skip_push: false
+- <<: *BASE_IMG
+  id: keda-webhooks-amd64
   image_templates:
   - "ghcr.io/kedify/keda-admission-webhooks:{{ .Env.IMAGE_TAG }}"
   use: buildx
   dockerfile: "Dockerfile.webhooks.kedify"
-  build_flag_templates: *buildFlags
-- id: keda-adapter-amd64
+  skip_push: false
+- <<: *BASE_IMG
+  id: keda-adapter-amd64
   image_templates:
   - "ghcr.io/kedify/keda-adapter:{{ .Env.IMAGE_TAG }}"
   use: buildx
   dockerfile: "Dockerfile.adapter.kedify"
-  build_flag_templates: *buildFlags
+  skip_push: false
+- <<: *HARDENED_IMG
+  id: kedify-keda-amd64-hardened
+  image_templates:
+  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}-hardened"
+  dockerfile: "Dockerfile.kedify"
+  skip_push: false
+- <<: *HARDENED_IMG
+  id: keda-webhooks-amd64-hardened
+  image_templates:
+  - "ghcr.io/kedify/keda-admission-webhooks:{{ .Env.IMAGE_TAG }}-hardened"
+  use: buildx
+  dockerfile: "Dockerfile.webhooks.kedify"
+  skip_push: false
+- <<: *HARDENED_IMG
+  id: keda-adapter-amd64-hardened
+  image_templates:
+  - "ghcr.io/kedify/keda-adapter:{{ .Env.IMAGE_TAG }}-hardened"
+  use: buildx
+  dockerfile: "Dockerfile.adapter.kedify"
+  skip_push: false
 
 docker_signs:
 - id: kedify
