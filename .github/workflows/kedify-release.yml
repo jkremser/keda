@@ -3,7 +3,7 @@ name: 'Release Kedify KEDA'
 on:
   push:
     tags:
-    - 'v*.*.*'
+    - 'v*.*.*-*'
 
 jobs:
   build-and-publish-images:
