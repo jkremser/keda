@@ -36,8 +36,8 @@ builds:
   main: cmd/webhooks/main.go
 - <<: *BASE_BUILD
   skip: false
-  id: keda-adapter
-  binary: keda-adapter
+  id: keda-metrics-apiserver
+  binary: keda-metrics-apiserver
   main: cmd/adapter/main.go
 - <<: *HARDENED_BUILD
   skip: false
@@ -51,8 +51,8 @@ builds:
   main: cmd/webhooks/main.go
 - <<: *HARDENED_BUILD
   skip: false
-  id: keda-adapter-hardened
-  binary: keda-adapter-hardened
+  id: keda-metrics-apiserver-hardened
+  binary: keda-metrics-apiserver-hardened
   main: cmd/adapter/main.go
 
 release:
@@ -99,9 +99,9 @@ dockers:
   dockerfile: "Dockerfile.webhooks.kedify"
   skip_push: false
 - <<: *BASE_IMG
-  id: keda-adapter-amd64
+  id: keda-metrics-apiserver-amd64
   image_templates:
-  - "ghcr.io/kedify/keda-adapter:{{ .Env.IMAGE_TAG }}"
+  - "ghcr.io/kedify/keda-metrics-apiserver:{{ .Env.IMAGE_TAG }}"
   use: buildx
   dockerfile: "Dockerfile.adapter.kedify"
   skip_push: false
@@ -119,9 +119,9 @@ dockers:
   dockerfile: "Dockerfile.webhooks.kedify"
   skip_push: false
 - <<: *HARDENED_IMG
-  id: keda-adapter-amd64-hardened
+  id: keda-metrics-apiserver-amd64-hardened
   image_templates:
-  - "ghcr.io/kedify/keda-adapter:{{ .Env.IMAGE_TAG }}-hardened"
+  - "ghcr.io/kedify/keda-metrics-apiserver:{{ .Env.IMAGE_TAG }}-hardened"
   use: buildx
   dockerfile: "Dockerfile.adapter.kedify"
   skip_push: false
