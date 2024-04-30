@@ -35,6 +35,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install arm C compiler toolchain # for boring crypto
+        run: sudo apt-get update && sudo apt-get install -y gccgo-aarch64-linux-gnu
+
       - name: Release with goreleaser
         uses: goreleaser/goreleaser-action@v4
         with:
