@@ -25,6 +25,8 @@ builds:
   - CGO_ENABLED=1
   - GOEXPERIMENT=boringcrypto
   - BUILD_EXTRA_GO_LDFLAGS="-linkmode=external -extldflags=-static"
+  goarch:
+  - amd64
 - &HARDENED_BUILD_ARM
   <<: *BASE_BUILD
   id: hardened-arm
@@ -33,6 +35,8 @@ builds:
   - CGO_ENABLED=1
   - GOEXPERIMENT=boringcrypto
   - BUILD_EXTRA_GO_LDFLAGS="-linkmode=external -extldflags=-static"
+  goarch:
+  - arm64
 - <<: *BASE_BUILD
   skip: false
   id: keda-operator
@@ -53,43 +57,31 @@ builds:
   id: keda-operator-hardened-amd64
   binary: keda-operator-hardened
   main: cmd/operator/main.go
-  goarch:
-  - amd64
 - <<: *HARDENED_BUILD
   skip: false
   id: keda-admission-webhooks-hardened-amd64
   binary: keda-admission-webhooks-hardened
   main: cmd/webhooks/main.go
-  goarch:
-  - amd64
 - <<: *HARDENED_BUILD
   skip: false
   id: keda-metrics-apiserver-hardened-amd64
   binary: keda-metrics-apiserver-hardened
   main: cmd/adapter/main.go
-  goarch:
-  - amd64
 - <<: *HARDENED_BUILD_ARM
   skip: false
   id: keda-operator-hardened-arm64
   binary: keda-operator-hardened
   main: cmd/operator/main.go
-  goarch:
-  - arm64
 - <<: *HARDENED_BUILD_ARM
   skip: false
   id: keda-admission-webhooks-hardened-arm64
   binary: keda-admission-webhooks-hardened
   main: cmd/webhooks/main.go
-  goarch:
-  - arm64
 - <<: *HARDENED_BUILD_ARM
   skip: false
   id: keda-metrics-apiserver-hardened-arm64
   binary: keda-metrics-apiserver-hardened
   main: cmd/adapter/main.go
-  goarch:
-  - arm64
 
 release:
   draft: true
@@ -149,40 +141,40 @@ dockers:
 - <<: *BASE_IMG
   id: kedify-keda-amd64
   image_templates:
-  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}"
+  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}-amd64"
   dockerfile: "Dockerfile.kedify"
   skip_push: false
 - <<: *BASE_IMG
   id: keda-webhooks-amd64
   image_templates:
-  - "ghcr.io/kedify/keda-admission-webhooks:{{ .Env.IMAGE_TAG }}"
+  - "ghcr.io/kedify/keda-admission-webhooks:{{ .Env.IMAGE_TAG }}-amd64"
   use: buildx
   dockerfile: "Dockerfile.webhooks.kedify"
   skip_push: false
 - <<: *BASE_IMG
   id: keda-metrics-apiserver-amd64
   image_templates:
-  - "ghcr.io/kedify/keda-metrics-apiserver:{{ .Env.IMAGE_TAG }}"
+  - "ghcr.io/kedify/keda-metrics-apiserver:{{ .Env.IMAGE_TAG }}-amd64"
   use: buildx
   dockerfile: "Dockerfile.adapter.kedify"
   skip_push: false
 - <<: *BASE_IMG_ARM
   id: kedify-keda-arm64
   image_templates:
-  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}"
+  - "ghcr.io/kedify/keda-operator:{{ .Env.IMAGE_TAG }}-arm64"
   dockerfile: "Dockerfile.kedify"
   skip_push: false
 - <<: *BASE_IMG_ARM
   id: keda-webhooks-arm64
   image_templates:
-  - "ghcr.io/kedify/keda-admission-webhooks:{{ .Env.IMAGE_TAG }}"
+  - "ghcr.io/kedify/keda-admission-webhooks:{{ .Env.IMAGE_TAG }}-arm64"
   use: buildx
   dockerfile: "Dockerfile.webhooks.kedify"
   skip_push: false
 - <<: *BASE_IMG_ARM
   id: keda-metrics-apiserver-arm64
   image_templates:
-  - "ghcr.io/kedify/keda-metrics-apiserver:{{ .Env.IMAGE_TAG }}"
+  - "ghcr.io/kedify/keda-metrics-apiserver:{{ .Env.IMAGE_TAG }}-arm64"
   use: buildx
   dockerfile: "Dockerfile.adapter.kedify"
   skip_push: false
