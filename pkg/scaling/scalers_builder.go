@@ -120,6 +120,9 @@ func (h *scaleHandler) buildScalers(ctx context.Context, withTriggers *kedav1alp
 
 // buildScaler builds a scaler form input config and trigger type
 func buildScaler(ctx context.Context, client client.Client, triggerType string, config *scalersconfig.ScalerConfig) (scalers.Scaler, error) {
+	if triggerType == "kedify-http" {
+		return scalers.NewKedifyHTTPScaler(ctx, client, config)
+	}
 	// TRIGGERS-START
 	switch triggerType {
 	case "activemq":
