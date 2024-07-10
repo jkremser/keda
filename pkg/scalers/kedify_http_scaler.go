@@ -42,14 +42,15 @@ type kedifyHttpScaler struct {
 }
 
 type kedifyHttpScalerMetadata struct {
-	service       string
-	port          int32
-	hosts         []string
-	pathPrefixes  []string
-	scalingMetric kedifyHttpScalerScalingMetric
-	targetValue   *int
-	granularity   *v1.Duration
-	window        *v1.Duration
+	service                 string
+	port                    int32
+	hosts                   []string
+	pathPrefixes            []string
+	scalingMetric           kedifyHttpScalerScalingMetric
+	targetValue             *int
+	granularity             *v1.Duration
+	window                  *v1.Duration
+	externalProxyMetricName string
 }
 
 // TODO - this should be more smart and dynamic, now it tries to connect to the same namespace and hardcoded port & name
@@ -204,6 +205,7 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 			logger.Info("granularity is not supported for concurrency scaling, ignoring the value")
 		}
 	}
+	meta.externalProxyMetricName = config.TriggerMetadata["externalProxyMetricName"]
 
 	return meta, nil
 }
@@ -230,6 +232,11 @@ func ensureHTTPScaledObjectExists(ctx context.Context, kubeClient client.Client,
 		ann = make(map[string]string)
 	}
 	ann["httpscaledobject.keda.sh/skip-scaledobject-creation"] = "true"
+	if meta.externalProxyMetricName != "" {
+		ann["http.kedify.io/envoy-cluster-name"] = meta.externalProxyMetricName
+	} else {
+		delete(ann, "http.kedify.io/envoy-cluster-name")
+	}
 	httpScaledObject := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "http.keda.sh/v1alpha1",
