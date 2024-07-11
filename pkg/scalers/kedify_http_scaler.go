@@ -42,17 +42,20 @@ type kedifyHttpScaler struct {
 }
 
 type kedifyHttpScalerMetadata struct {
-	service                 string
-	port                    int32
-	hosts                   []string
-	pathPrefixes            []string
-	scalingMetric           kedifyHttpScalerScalingMetric
-	targetValue             *int
-	granularity             *v1.Duration
-	window                  *v1.Duration
-	kedifyAutowiring        string
-	externalProxyMetricName string
+	service                string
+	port                   int32
+	hosts                  []string
+	pathPrefixes           []string
+	scalingMetric          kedifyHttpScalerScalingMetric
+	targetValue            *int
+	granularity            *v1.Duration
+	window                 *v1.Duration
+	kedifyAutowiring       string
+	externalProxyMetricKey string
 }
+
+// externalProxyMetricKeyAnnotation is the annotation for pairing external metrics in the interceptor
+const externalProxyMetricKeyAnnotation = "http.kedify.io/external-proxy-metric-key"
 
 // TODO - this should be more smart and dynamic, now it tries to connect to the same namespace and hardcoded port & name
 var httpScalerAddress = fmt.Sprintf("keda-add-ons-http-external-scaler.%s:9090", kedautil.GetPodNamespace())
@@ -206,7 +209,7 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 			logger.Info("granularity is not supported for concurrency scaling, ignoring the value")
 		}
 	}
-	meta.externalProxyMetricName = config.TriggerMetadata["externalProxyMetricName"]
+	meta.externalProxyMetricKey = config.TriggerMetadata["externalProxyMetricKey"]
 
 	if val, ok := config.TriggerMetadata["autowiring"]; ok {
 		autowiring, err := validateKedifyAutowiring(val)
@@ -241,10 +244,10 @@ func ensureHTTPScaledObjectExists(ctx context.Context, kubeClient client.Client,
 		ann = make(map[string]string)
 	}
 	ann["httpscaledobject.keda.sh/skip-scaledobject-creation"] = "true"
-	if meta.externalProxyMetricName != "" {
-		ann["http.kedify.io/envoy-cluster-name"] = meta.externalProxyMetricName
+	if meta.externalProxyMetricKey != "" {
+		ann[externalProxyMetricKeyAnnotation] = meta.externalProxyMetricKey
 	} else {
-		delete(ann, "http.kedify.io/envoy-cluster-name")
+		delete(ann, externalProxyMetricKeyAnnotation)
 	}
 	if meta.kedifyAutowiring != "" {
 		ann["http.kedify.io/autoconfigure"] = meta.kedifyAutowiring
