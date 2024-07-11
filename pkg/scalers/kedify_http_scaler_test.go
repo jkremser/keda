@@ -17,6 +17,39 @@ import (
 	"github.com/kedacore/keda/v2/pkg/scalers/scalersconfig"
 )
 
+func TestValidateKedifyAutowiring(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+		err      bool
+	}{
+		{"", "", false},
+		{"false", "false", false},
+		{"httproute", "httproute", false},
+		{"ingress", "ingress", false},
+		{"virtualservice", "virtualservice", false},
+		{"httproute,ingress", "httproute,ingress", false},
+		{"httproute,ingress,virtualservice", "httproute,ingress,virtualservice", false},
+		{"httproute,ingress,virtualservice,false", "", true},
+		{"invalid", "", true},
+		{"invalid;", "", true},
+		{"httproute,invalid", "", true},
+		{" Httproute , Ingress ", "httproute,ingress", false},
+		{"   ", "", false},
+		{"FALSE ", "false", false},
+	}
+
+	for _, test := range tests {
+		result, err := validateKedifyAutowiring(test.input)
+		if (err != nil) != test.err {
+			t.Errorf("expected error: %v, got: %v", test.err, err)
+		}
+		if result != test.expected {
+			t.Errorf("expected: %s, got: %s", test.expected, result)
+		}
+	}
+}
+
 type kedifyHttpMetadataTestData struct {
 	metadata  map[string]string
 	namespace string

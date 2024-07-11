@@ -50,6 +50,7 @@ type kedifyHttpScalerMetadata struct {
 	targetValue             *int
 	granularity             *v1.Duration
 	window                  *v1.Duration
+	kedifyAutowiring        string
 	externalProxyMetricName string
 }
 
@@ -207,6 +208,14 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 	}
 	meta.externalProxyMetricName = config.TriggerMetadata["externalProxyMetricName"]
 
+	if val, ok := config.TriggerMetadata["autowiring"]; ok {
+		autowiring, err := validateKedifyAutowiring(val)
+		if err != nil {
+			return meta, err
+		}
+		meta.kedifyAutowiring = autowiring
+	}
+
 	return meta, nil
 }
 
@@ -237,6 +246,12 @@ func ensureHTTPScaledObjectExists(ctx context.Context, kubeClient client.Client,
 	} else {
 		delete(ann, "http.kedify.io/envoy-cluster-name")
 	}
+	if meta.kedifyAutowiring != "" {
+		ann["http.kedify.io/autoconfigure"] = meta.kedifyAutowiring
+	} else {
+		delete(ann, "http.kedify.io/autoconfigure")
+	}
+
 	httpScaledObject := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "http.keda.sh/v1alpha1",
@@ -319,4 +334,22 @@ func getDurationOrDefault(val *v1.Duration, defaultVal time.Duration) v1.Duratio
 		return v1.Duration{Duration: defaultVal}
 	}
 	return *val
+}
+
+// validateKedifyAutowiring validates the kedifyAutowiring value
+func validateKedifyAutowiring(value string) (string, error) {
+	value = strings.TrimSpace(strings.ToLower(value))
+	if value == "" || value == "false" {
+		return value, nil
+	}
+	validValues := map[string]bool{"httproute": true, "ingress": true, "virtualservice": true}
+	values := strings.Split(value, ",")
+	for i, v := range values {
+		v = strings.TrimSpace(v)
+		if !validValues[v] {
+			return "", fmt.Errorf("invalid autowiring value " + v + " given, valid values are httproute,ingress,virtualservice")
+		}
+		values[i] = v
+	}
+	return strings.Join(values, ","), nil
 }
