@@ -117,6 +117,9 @@ func buildScaler(ctx context.Context, client client.Client, triggerType string, 
 	if triggerType == "kedify-http" {
 		return scalers.NewKedifyHTTPScaler(ctx, client, config)
 	}
+	if triggerType == "kedify-envoy-http" {
+		return scalers.NewKedifyEnvoyHTTPScaler(ctx, client, config)
+	}
 	// TRIGGERS-START
 	switch triggerType {
 	case "activemq":

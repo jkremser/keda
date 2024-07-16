@@ -70,7 +70,7 @@ func NewKedifyHTTPScaler(ctx context.Context, kubeClient client.Client, config *
 	logger := InitializeLogger(config, "kedify_http_scaler")
 
 	if config.ScalableObjectType != "ScaledObject" {
-		e := fmt.Errorf("kedify-http scaler only support ScaledObject, invalid scalable object type: %s", config.ScalableObjectType)
+		e := fmt.Errorf("'kedify-http' scaler only support ScaledObject, invalid scalable object type: %s", config.ScalableObjectType)
 		return nil, e
 	}
 
