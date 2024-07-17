@@ -17,7 +17,7 @@ import (
 	"github.com/kedacore/keda/v2/pkg/scalers/scalersconfig"
 )
 
-func TestValidateKedifyAutowiring(t *testing.T) {
+func TestValidateTrafficAutowire(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
@@ -40,7 +40,7 @@ func TestValidateKedifyAutowiring(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result, err := validateKedifyAutowiring(test.input)
+		result, err := validateTrafficAutowire(test.input)
 		if (err != nil) != test.err {
 			t.Errorf("expected error: %v, got: %v", test.err, err)
 		}
