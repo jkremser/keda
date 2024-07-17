@@ -52,6 +52,10 @@ type kedifyHttpScalerMetadata struct {
 	window                 *v1.Duration
 	kedifyAutowiring       string
 	externalProxyMetricKey string
+
+	// healthcheck related fields
+	healthcheckPath     string
+	healthcheckResponse string
 }
 
 // externalProxyMetricKeyAnnotation is the annotation for pairing external metrics in the interceptor
@@ -219,6 +223,22 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 		meta.kedifyAutowiring = autowiring
 	}
 
+	if val, ok := config.TriggerMetadata["healthcheckPath"]; ok {
+		meta.healthcheckPath = val
+	}
+
+	if val, ok := config.TriggerMetadata["healthcheckResponse"]; ok {
+		if meta.healthcheckPath != "" {
+			err := validateHealthcheckResponse(val)
+			if err != nil {
+				return meta, err
+			}
+			meta.healthcheckResponse = val
+		} else {
+			return meta, fmt.Errorf("healthcheckResponse is a required field when healthcheckPath is set")
+		}
+	}
+
 	return meta, nil
 }
 
@@ -253,6 +273,17 @@ func ensureHTTPScaledObjectExists(ctx context.Context, kubeClient client.Client,
 		ann["http.kedify.io/autoconfigure"] = meta.kedifyAutowiring
 	} else {
 		delete(ann, "http.kedify.io/autoconfigure")
+	}
+
+	if meta.healthcheckPath != "" {
+		ann["http.kedify.io/healthcheck-path"] = meta.healthcheckPath
+	} else {
+		delete(ann, "http.kedify.io/healthcheck-path")
+	}
+	if meta.healthcheckResponse != "" {
+		ann["http.kedify.io/healthcheck-response"] = meta.healthcheckResponse
+	} else {
+		delete(ann, "http.kedify.io/healthcheck-response")
 	}
 
 	httpScaledObject := &unstructured.Unstructured{
@@ -355,4 +386,14 @@ func validateKedifyAutowiring(value string) (string, error) {
 		values[i] = v
 	}
 	return strings.Join(values, ","), nil
+}
+
+// validateHealthcheckResponse validates the healthcheck response
+// the only valid values are "", "passthrough" and "static"
+func validateHealthcheckResponse(value string) error {
+	value = strings.TrimSpace(strings.ToLower(value))
+	if value == "" || value == "passthrough" || value == "static" {
+		return nil
+	}
+	return fmt.Errorf("invalid healthcheckResponse value %q given, valid values are passthrough, static", value)
 }

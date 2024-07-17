@@ -50,6 +50,31 @@ func TestValidateKedifyAutowiring(t *testing.T) {
 	}
 }
 
+func TestValidateHealthcheckResponse(t *testing.T) {
+	tests := []struct {
+		input string
+		err   bool
+	}{
+		{"", false},
+		{"passthrough", false},
+		{"static", false},
+		{"invalid", true},
+		{"invalid;", true},
+		{"passthrough,static", true},
+		{"passthrough,invalid", true},
+		{"passthrough;", true},
+		{"passthrough,static;", true},
+		{"passthrough,static,false", true},
+	}
+
+	for _, test := range tests {
+		err := validateHealthcheckResponse(test.input)
+		if (err != nil) != test.err {
+			t.Errorf("expected error: %v, got: %v", test.err, err)
+		}
+	}
+}
+
 type kedifyHttpMetadataTestData struct {
 	metadata  map[string]string
 	namespace string
