@@ -124,7 +124,7 @@ func parseKedifyEnvoyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logg
 	meta := kedifyHttpScalerMetadata{}
 
 	// we disable autowiring by default for Kedify Envoy HTTP scaler
-	meta.kedifyAutowiring = "false"
+	meta.trafficAutowire = "false"
 
 	if val, ok := config.TriggerMetadata["externalProxyMetricKey"]; ok {
 		meta.externalProxyMetricKey = val

@@ -50,7 +50,7 @@ type kedifyHttpScalerMetadata struct {
 	targetValue            *int
 	granularity            *v1.Duration
 	window                 *v1.Duration
-	kedifyAutowiring       string
+	trafficAutowire        string
 	externalProxyMetricKey string
 
 	// healthcheck related fields
@@ -215,12 +215,12 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 	}
 	meta.externalProxyMetricKey = config.TriggerMetadata["externalProxyMetricKey"]
 
-	if val, ok := config.TriggerMetadata["autowiring"]; ok {
-		autowiring, err := validateKedifyAutowiring(val)
+	if val, ok := config.TriggerMetadata["trafficAutowire"]; ok {
+		autowiring, err := validateTrafficAutowire(val)
 		if err != nil {
 			return meta, err
 		}
-		meta.kedifyAutowiring = autowiring
+		meta.trafficAutowire = autowiring
 	}
 
 	if val, ok := config.TriggerMetadata["healthcheckPath"]; ok {
@@ -269,10 +269,10 @@ func ensureHTTPScaledObjectExists(ctx context.Context, kubeClient client.Client,
 	} else {
 		delete(ann, externalProxyMetricKeyAnnotation)
 	}
-	if meta.kedifyAutowiring != "" {
-		ann["http.kedify.io/autoconfigure"] = meta.kedifyAutowiring
+	if meta.trafficAutowire != "" {
+		ann["http.kedify.io/traffic-autowire"] = meta.trafficAutowire
 	} else {
-		delete(ann, "http.kedify.io/autoconfigure")
+		delete(ann, "http.kedify.io/traffic-autowire")
 	}
 
 	if meta.healthcheckPath != "" {
@@ -370,8 +370,9 @@ func getDurationOrDefault(val *v1.Duration, defaultVal time.Duration) v1.Duratio
 	return *val
 }
 
-// validateKedifyAutowiring validates the kedifyAutowiring value
-func validateKedifyAutowiring(value string) (string, error) {
+// validateTrafficAutowire validates the trafficAutowire value
+// allowed values are "", "false" or any combination of following values "httproute", "ingress", "virtualservice"
+func validateTrafficAutowire(value string) (string, error) {
 	value = strings.TrimSpace(strings.ToLower(value))
 	if value == "" || value == "false" {
 		return value, nil
