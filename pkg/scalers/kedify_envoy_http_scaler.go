@@ -135,6 +135,7 @@ func parseKedifyEnvoyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logg
 	// we need to set mandatory fields on HTTPScaledObject, these are not used so we can set them to envoy_"externalProxyMetricKey"
 	key := fmt.Sprintf("envoy_%s", meta.externalProxyMetricKey)
 	meta.hosts = []string{key}
+	meta.pathPrefixes = []string{"/"}
 	meta.service = key
 	meta.port = 0
 

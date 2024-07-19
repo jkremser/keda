@@ -167,6 +167,11 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 		return meta, fmt.Errorf("hosts is a required field")
 	}
 
+	// Set default pathPrefixes to "/" to prevent problems during an update of SO.
+	// If the value of pathPrefixes is not set in the SO, an update on the SO
+	// causes the pathPrefixes be added to HSO as [] which is not allowed.
+	// This is probably a bug in the Unstructured resources handling.
+	meta.pathPrefixes = []string{"/"}
 	if val, ok := config.TriggerMetadata["pathPrefixes"]; ok && val != "" {
 		meta.pathPrefixes = strings.Split(config.TriggerMetadata["pathPrefixes"], ",")
 	}
