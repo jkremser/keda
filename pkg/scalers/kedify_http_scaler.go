@@ -137,7 +137,7 @@ func (s *kedifyHttpScaler) GetMetricsAndActivity(ctx context.Context, metricName
 	metrics, active, err := s.externalPushScaler.GetMetricsAndActivity(ctx, metricName)
 	for _, m := range metrics {
 		if m.Value.Value() < 0 {
-			return metrics, active, fmt.Errorf("interceptor is down")
+			return metrics, active, fmt.Errorf("http add-on interceptor is down")
 		}
 	}
 	return metrics, active, err
