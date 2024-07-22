@@ -134,7 +134,13 @@ func (s *kedifyHttpScaler) GetMetricSpecForScaling(ctx context.Context) []v2.Met
 }
 
 func (s *kedifyHttpScaler) GetMetricsAndActivity(ctx context.Context, metricName string) ([]external_metrics.ExternalMetricValue, bool, error) {
-	return s.externalPushScaler.GetMetricsAndActivity(ctx, metricName)
+	metrics, active, err := s.externalPushScaler.GetMetricsAndActivity(ctx, metricName)
+	for _, m := range metrics {
+		if m.Value.Value() < 0 {
+			return metrics, active, fmt.Errorf("interceptor is down")
+		}
+	}
+	return metrics, active, err
 }
 
 func (s *kedifyHttpScaler) Run(ctx context.Context, active chan<- bool) {
