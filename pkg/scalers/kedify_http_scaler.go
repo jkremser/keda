@@ -382,18 +382,18 @@ func getDurationOrDefault(val *v1.Duration, defaultVal time.Duration) v1.Duratio
 }
 
 // validateTrafficAutowire validates the trafficAutowire value
-// allowed values are "", "false" or any combination of following values "httproute", "ingress", "virtualservice"
+// allowed values are "", "false" or any combination of following values "httproute", "ingress", "virtualservice", "route"
 func validateTrafficAutowire(value string) (string, error) {
 	value = strings.TrimSpace(strings.ToLower(value))
 	if value == "" || value == "false" {
 		return value, nil
 	}
-	validValues := map[string]bool{"httproute": true, "ingress": true, "virtualservice": true}
+	validValues := map[string]bool{"httproute": true, "ingress": true, "virtualservice": true, "route": true}
 	values := strings.Split(value, ",")
 	for i, v := range values {
 		v = strings.TrimSpace(v)
 		if !validValues[v] {
-			return "", fmt.Errorf("invalid autowiring value " + v + " given, valid values are httproute,ingress,virtualservice")
+			return "", fmt.Errorf("invalid autowiring value " + v + " given, valid values are httproute,ingress,virtualservice,route")
 		}
 		values[i] = v
 	}
