@@ -52,6 +52,7 @@ type kedifyHttpScalerMetadata struct {
 	window                 *v1.Duration
 	trafficAutowire        string
 	externalProxyMetricKey string
+	tlsSecretName          string
 
 	// healthcheck related fields
 	healthcheckPath     string
@@ -234,6 +235,10 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 		meta.trafficAutowire = autowiring
 	}
 
+	if val, ok := config.TriggerMetadata["tlsSecretName"]; ok {
+		meta.tlsSecretName = val
+	}
+
 	if val, ok := config.TriggerMetadata["healthcheckPath"]; ok {
 		meta.healthcheckPath = val
 	}
@@ -284,6 +289,11 @@ func ensureHTTPScaledObjectExists(ctx context.Context, kubeClient client.Client,
 		ann["http.kedify.io/traffic-autowire"] = meta.trafficAutowire
 	} else {
 		delete(ann, "http.kedify.io/traffic-autowire")
+	}
+	if meta.tlsSecretName != "" {
+		ann["http.kedify.io/tls-secret-name"] = meta.tlsSecretName
+	} else {
+		delete(ann, "http.kedify.io/tls-secret-name")
 	}
 
 	if meta.healthcheckPath != "" {
