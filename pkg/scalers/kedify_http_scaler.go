@@ -44,6 +44,7 @@ type kedifyHttpScaler struct {
 type kedifyHttpScalerMetadata struct {
 	service                string
 	port                   int32
+	portName               string
 	hosts                  []string
 	pathPrefixes           []string
 	scalingMetric          kedifyHttpScalerScalingMetric
@@ -158,15 +159,19 @@ func parseKedifyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logger lo
 		return meta, fmt.Errorf("service is a required field")
 	}
 
-	if val, ok := config.TriggerMetadata["port"]; ok {
-		tv, err := strconv.ParseInt(val, 10, 64)
+	port, portDefined := config.TriggerMetadata["port"]
+	portName, portNameDefined := config.TriggerMetadata["portName"]
+	if portDefined == portNameDefined {
+		return meta, fmt.Errorf("exactly one of 'port' or 'portName' must be set")
+	}
+	if port != "" {
+		tv, err := strconv.ParseInt(port, 10, 64)
 		if err != nil {
 			return meta, fmt.Errorf("invalid port - must be an integer")
 		}
 		meta.port = int32(tv)
-	} else {
-		return meta, fmt.Errorf("port is a required field")
 	}
+	meta.portName = portName
 
 	if val, ok := config.TriggerMetadata["hosts"]; ok && val != "" {
 		meta.hosts = strings.Split(config.TriggerMetadata["hosts"], ",")
@@ -321,11 +326,16 @@ func ensureHTTPScaledObjectExists(ctx context.Context, kubeClient client.Client,
 					"kind":       scaledObject.Spec.ScaleTargetRef.Kind,
 					"name":       scaledObject.Spec.ScaleTargetRef.Name,
 					"service":    meta.service,
-					"port":       int64(meta.port),
 				},
 				"scalingMetric": scalingMetric,
 			},
 		},
+	}
+	if meta.port != 0 {
+		unstructured.SetNestedField(httpScaledObject.Object, int64(meta.port), "spec", "scaleTargetRef", "port")
+	}
+	if meta.portName != "" {
+		unstructured.SetNestedField(httpScaledObject.Object, meta.portName, "spec", "scaleTargetRef", "portName")
 	}
 	if scaledObject.Spec.MinReplicaCount != nil {
 		unstructured.SetNestedField(httpScaledObject.Object, int64(*scaledObject.Spec.MinReplicaCount), "spec", "replicas", "min")

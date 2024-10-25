@@ -85,6 +85,7 @@ type kedifyHttpMetadataTestData struct {
 
 var parseKedifyHttpMetadataTestDataset = []kedifyHttpMetadataTestData{
 	{map[string]string{"service": "example-service", "port": "8080", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "requestRate", "targetValue": "100", "window": "30s", "granularity": "5s"}, "default", false},
+	{map[string]string{"service": "example-service", "portName": "http", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "requestRate", "targetValue": "100", "window": "30s", "granularity": "5s"}, "default", false},
 	{map[string]string{"service": "example-service", "port": "8080", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "concurrency", "targetValue": "10"}, "default", false},
 	{map[string]string{"service": "example-service", "port": "8080", "hosts": "example.com", "scalingMetric": "requestRate", "targetValue": "100"}, "default", false},
 	{map[string]string{"service": "example-service", "port": "8080", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "requestRate, concurrency", "targetValue": "10"}, "default", true},
@@ -95,6 +96,7 @@ var parseKedifyHttpMetadataTestDataset = []kedifyHttpMetadataTestData{
 	{map[string]string{"port": "8080", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "requestRate", "targetValue": "100"}, "default", true},
 	{map[string]string{"service": "example-service", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "requestRate", "targetValue": "100"}, "default", true},
 	{map[string]string{"service": "example-service", "port": "invalidPort", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "requestRate", "targetValue": "100"}, "default", true},
+	{map[string]string{"service": "example-service", "port": "8080", "portName": "http", "hosts": "example.com", "pathPrefixes": "/api", "scalingMetric": "requestRate", "targetValue": "100", "window": "30s", "granularity": "5s"}, "default", true},
 }
 
 func TestParseKedifyHttpMetadata(t *testing.T) {
