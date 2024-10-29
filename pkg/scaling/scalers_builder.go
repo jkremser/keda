@@ -120,6 +120,9 @@ func buildScaler(ctx context.Context, client client.Client, triggerType string, 
 	if triggerType == "kedify-envoy-http" {
 		return scalers.NewKedifyEnvoyHTTPScaler(ctx, client, config)
 	}
+	if triggerType == "kedify-otel" {
+		return scalers.NewKedifyOTELScaler(ctx, client, config)
+	}
 	// TRIGGERS-START
 	switch triggerType {
 	case "activemq":
