@@ -35,7 +35,7 @@ type kedifyEnvoyHttpScaler struct {
 	metadata   kedifyHttpScalerMetadata
 }
 
-// NewKedifyHTTPScaler creates ExternalPushScaler for connecting with HTTP Addon, it also creates HTTPScaledObject based on the input metadata
+// NewKedifyEnvoyHTTPScaler creates ExternalPushScaler for connecting with HTTP Addon, it also creates HTTPScaledObject based on the input metadata
 func NewKedifyEnvoyHTTPScaler(ctx context.Context, kubeClient client.Client, config *scalersconfig.ScalerConfig) (PushScaler, error) {
 	metricType, err := GetMetricTargetType(config)
 	if err != nil {
