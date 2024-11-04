@@ -143,7 +143,7 @@ func parseKedifyEnvoyHTTPScalerMetadata(config *scalersconfig.ScalerConfig, logg
 	meta.hosts = []string{key}
 	meta.pathPrefixes = []string{"/"}
 	meta.service = key
-	meta.port = 0
+	meta.port = 1
 
 	if config.TriggerMetadata["scalingMetric"] != "" {
 		mode := kedifyHttpScalerScalingMetric(config.TriggerMetadata["scalingMetric"])
